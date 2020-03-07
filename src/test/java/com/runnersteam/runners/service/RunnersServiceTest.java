@@ -14,6 +14,7 @@ import static org.mockito.Mockito.when;
 
 import com.runnersteam.runners.exception.ExistingRunnerException;
 import com.runnersteam.runners.exception.RunnerNotFoundException;
+import com.runnersteam.runners.messaging.RunnerBinding;
 import com.runnersteam.runners.model.Runner;
 import com.runnersteam.runners.repository.RunnersRepository;
 import java.util.Optional;
@@ -23,6 +24,8 @@ import org.mockito.InOrder;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageChannel;
 
 @ExtendWith(MockitoExtension.class)
 public class RunnersServiceTest {
@@ -34,6 +37,9 @@ public class RunnersServiceTest {
 
   @Mock
   private RunnersRepository runnersRepository;
+
+  @Mock
+  private MessageChannel newRunnerRegistrationOutput;
 
   @Mock
   private Runner runner;
@@ -77,9 +83,10 @@ public class RunnersServiceTest {
 
     //Then
     assertThat(created).isNotNull();
-    InOrder inOrder = inOrder(runnersRepository, runner);
+    InOrder inOrder = inOrder(runnersRepository, runner, newRunnerRegistrationOutput);
     inOrder.verify(runner).getNickname();
     inOrder.verify(runnersRepository).findById(THE_NICKNAME);
+    inOrder.verify(newRunnerRegistrationOutput).send(any(Message.class));
     inOrder.verify(runnersRepository).save(runner);
   }
 
